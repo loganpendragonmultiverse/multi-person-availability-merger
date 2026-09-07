@@ -67,5 +67,5 @@ def test_same_names_distinct_ids_and_short_windows() -> None:
     ],
 )
 def test_invalid_shapes_are_clean_errors(data: object) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, TypeError)):
         analyze(data)  # type: ignore[arg-type]

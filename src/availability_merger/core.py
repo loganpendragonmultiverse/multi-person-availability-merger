@@ -9,7 +9,7 @@ PROJECT = "multi-person-availability-merger"
 
 def _require(data: dict[str, Any], key: str) -> Any:
     if not isinstance(data, dict):
-        raise ValueError("input and participant records must be JSON objects")
+        raise TypeError("input and participant records must be JSON objects")
     value = data.get(key)
     if value is None or value == "" or value == []:
         raise ValueError(f"{key} is required")
@@ -22,7 +22,7 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("people must be a nonempty array of participant objects")
     required = data.get("minimum_people", len(people))
     if not isinstance(required, int) or isinstance(required, bool):
-        raise ValueError("minimum_people must be an integer")
+        raise TypeError("minimum_people must be an integer")
     if required < 1 or required > len(people):
         raise ValueError("minimum_people is outside the participant count")
     minimum = data.get("minimum_minutes", 0)
@@ -44,7 +44,7 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
         names[identity] = name
         intervals = person.get("intervals", [])
         if not isinstance(intervals, list):
-            raise ValueError(f"intervals for {identity} must be an array")
+            raise TypeError(f"intervals for {identity} must be an array")
         ranges: list[tuple[datetime, datetime]] = []
         for interval in intervals:
             if (
@@ -126,7 +126,7 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
 
 def analyze(data: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(data, dict):
-        raise ValueError("input must be a JSON object")
+        raise TypeError("input must be a JSON object")
     return {"version": 1, "project": PROJECT, **_availability(data)}
 
 
