@@ -33,6 +33,14 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
     mode = data.get("timezone_mode", "auto")
     if mode not in {"auto", "utc", "naive"}:
         raise ValueError("timezone_mode must be auto, utc, or naive")
+    required_ids = data.get("required_participant_ids", [])
+    if not isinstance(required_ids, list) or not all(
+        isinstance(identity, str) and identity.strip() for identity in required_ids
+    ):
+        raise ValueError("required_participant_ids must be an array of nonempty participant IDs")
+    required_set = set(required_ids)
+    if len(required_set) != len(required_ids):
+        raise ValueError("required_participant_ids must not contain duplicates")
     events = []
     names: dict[str, str] = {}
     aware_seen: bool | None = None
@@ -83,12 +91,19 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
             start, end = start + timedelta(minutes=buffer), end - timedelta(minutes=buffer)
             if end > start:
                 events.extend([(start, 1, identity), (end, -1, identity)])
+    if not required_set.issubset(names):
+        raise ValueError("required_participant_ids contains an unknown participant ID")
     events.sort(key=lambda item: (item[0], item[1]))
     active: dict[str, int] = {}
     overlaps: list[dict[str, Any]] = []
     previous: datetime | None = None
     for moment, change, name in events:
-        if previous is not None and moment > previous and (len(active) >= required):
+        if (
+            previous is not None
+            and moment > previous
+            and len(active) >= required
+            and required_set.issubset(active)
+        ):
             overlaps.append(
                 {
                     "start": previous.isoformat(),
@@ -116,6 +131,9 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
             merged.append(item)
     return {
         "overlaps": [item for item in merged if item["minutes"] >= minimum],
+        **(
+            {"required_participant_ids": required_ids} if "required_participant_ids" in data else {}
+        ),
         "minimum_people": required,
         "participant_names": names,
         "minimum_minutes": minimum,
