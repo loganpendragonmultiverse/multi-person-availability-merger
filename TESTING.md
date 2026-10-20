@@ -22,3 +22,13 @@ with `python -c "import sysconfig; print(sysconfig.get_path('data'))"`, then run
 `availability-merge <prefix>/share/doc/multi-person-availability-merger/examples/sample.json`.
 Release acceptance installs both the exact tag wheel and sdist into fresh environments,
 checks those files and runs the CLI examples outside the source checkout.
+
+## Native CI architecture mapping
+
+The complete existing six-cell matrix and test commands remain required. The
+`macos-latest, 3.10` check runs on the standard `macos-26-intel` image (macOS 26,
+Intel); the `macos-latest, 3.14` check retains the standard current macOS ARM
+image. Linux and Windows still test both Python 3.10 and 3.14. The explicit
+older-Python mapping avoids the observed ARM runner allocation failures while
+retaining native macOS coverage, every check name and the coverage threshold.
+It does not change branch protection, workflow permissions or test selection.
