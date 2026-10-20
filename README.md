@@ -74,3 +74,10 @@ overwritten even if it appears between validation and writing. Markdown particip
 IDs are rendered as literal text; JSON preserves supplied IDs. The intended scope
 is complete: explicit intervals, unions, buffers, quorum and required participants,
 UTC arithmetic and read-only-source report export. No calendar service is contacted.
+
+Installed wheels include the four authority documents and the synthetic sample at
+`share/doc/multi-person-availability-merger` under Python's data prefix. Locate it
+with `python -c "import sysconfig; print(sysconfig.get_path('data'))"`, then run
+`availability-merge <prefix>/share/doc/multi-person-availability-merger/examples/sample.json`.
+Release acceptance installs both the exact tag wheel and sdist into fresh environments,
+checks those files and runs the CLI examples outside the source checkout.

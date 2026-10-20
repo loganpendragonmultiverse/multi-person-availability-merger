@@ -35,3 +35,7 @@ omit = ["src/*/__main__.py"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov=availability_merger --cov-branch --cov-report=term-missing --cov-fail-under=90"
+
+[tool.setuptools.data-files]
+"share/doc/multi-person-availability-merger" = ["README.md", "CHANGELOG.md", "DEVELOPMENT.md", "TESTING.md"]
+"share/doc/multi-person-availability-merger/examples" = ["examples/sample.json"]
