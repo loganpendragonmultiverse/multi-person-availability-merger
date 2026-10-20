@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import html
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -14,6 +16,17 @@ def _require(data: dict[str, Any], key: str) -> Any:
     if value is None or value == "" or value == []:
         raise ValueError(f"{key} is required")
     return value
+
+
+def _datetime(value: str) -> datetime:
+    if not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2})?",
+        value,
+    ):
+        raise ValueError("interval endpoints require ISO dates and explicit hours/minutes")
+    if len(value) >= 6 and value[-6] in "+-" and (int(value[-5:-3]) > 23 or int(value[-2:]) > 59):
+        raise ValueError("datetime offsets require hours 00-23 and minutes 00-59")
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def _availability(data: dict[str, Any]) -> dict[str, Any]:
@@ -31,7 +44,7 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(value, int) or isinstance(value, bool) or value < 0:
             raise ValueError(f"{key} must be a nonnegative integer")
     mode = data.get("timezone_mode", "auto")
-    if mode not in {"auto", "utc", "naive"}:
+    if not isinstance(mode, str) or mode not in {"auto", "utc", "naive"}:
         raise ValueError("timezone_mode must be auto, utc, or naive")
     required_ids = data.get("required_participant_ids", [])
     if not isinstance(required_ids, list) or not all(
@@ -45,7 +58,9 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
     names: dict[str, str] = {}
     aware_seen: bool | None = None
     for person in people:
-        name = str(_require(person, "name"))
+        name = _require(person, "name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("participant names must be nonempty strings")
         identity = person.get("id", name)
         if not isinstance(identity, str) or not identity.strip() or identity in names:
             raise ValueError("participant IDs must be nonempty and unique (name is the default ID)")
@@ -61,9 +76,7 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
                 or not all(isinstance(value, str) for value in interval)
             ):
                 raise ValueError(f"intervals for {identity} must contain start/end string pairs")
-            start, end = (
-                datetime.fromisoformat(value.replace("Z", "+00:00")) for value in interval
-            )
+            start, end = (_datetime(value) for value in interval)
             for moment in (start, end):
                 aware = moment.utcoffset() is not None
                 if (
@@ -77,7 +90,12 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
                     raise ValueError("datetime forms must be consistently offset-aware or naive")
                 aware_seen = aware
             if aware_seen:
-                start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+                try:
+                    start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+                except OverflowError as exc:
+                    raise ValueError(
+                        "UTC datetimes must remain within years 1 through 9999"
+                    ) from exc
             if end <= start:
                 raise ValueError("availability intervals must end after they start")
             ranges.append((start, end))
@@ -88,6 +106,8 @@ def _availability(data: dict[str, Any]) -> dict[str, Any]:
             else:
                 union.append((start, end))
         for start, end in union:
+            if (end - start).total_seconds() <= buffer * 120:
+                continue
             start, end = start + timedelta(minutes=buffer), end - timedelta(minutes=buffer)
             if end > start:
                 events.extend([(start, 1, identity), (end, -1, identity)])
@@ -152,6 +172,11 @@ def render_json(report: dict[str, Any]) -> str:
     return json.dumps(report, indent=2, ensure_ascii=False, default=str) + "\n"
 
 
+def _markdown_text(value: str) -> str:
+    escaped = html.escape(value, quote=False).replace("\r", " ").replace("\n", " ")
+    return re.sub(r"([\\`*{}\[\]()#+.!_|~])", r"\\\1", escaped)
+
+
 def render_markdown(report: dict[str, Any]) -> str:
     lines = [f"# {report['project'].replace('-', ' ').title()} report", ""]
     lines.extend(
@@ -163,7 +188,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         ]
     )
     for slot in report["overlaps"]:
-        people = ", ".join(slot["people"]).replace("|", "\\|").replace("\n", " ")
+        people = ", ".join(_markdown_text(value) for value in slot["people"])
         lines.append(f"| {slot['start']} | {slot['end']} | {slot['minutes']} | {people} |")
     lines.append("")
     for key, value in report.items():

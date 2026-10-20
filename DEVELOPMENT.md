@@ -24,3 +24,12 @@ organizer plus at least one other participant. Buffers still trim each person's 
 and the duration filter applies to each continuous window with the same participant set.
 Explicit offsets retain UTC arithmetic across transitions. No calendar access, invitations,
 time-zone guessing, or inferred availability is added.
+
+## 1.2.1 audited completion
+
+Preserve the explicit-interval interpretation boundary and the existing output
+schema. Regression coverage includes non-text/blank participant names, date-only
+and ambiguous endpoint forms, offset-minute validation, UTC year overflow, huge
+buffers, literal Markdown IDs and exclusive report creation under a simulated race
+and dangling symlink. Run the full unchanged format/lint/type/coverage/build gates,
+then install both release distributions and exercise the CLI examples and errors.
