@@ -11,7 +11,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.10", "3.14"]
-    runs-on: ${{ matrix.os }}
+    # Keep macOS/Python 3.10 on macOS 26 Intel; Python 3.14 retains macOS ARM.
+    runs-on: ${{ matrix.os == 'macos-latest' && matrix.python == '3.10' && 'macos-26-intel' || matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
