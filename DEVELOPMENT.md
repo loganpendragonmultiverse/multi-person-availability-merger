@@ -33,3 +33,10 @@ and ambiguous endpoint forms, offset-minute validation, UTC year overflow, huge
 buffers, literal Markdown IDs and exclusive report creation under a simulated race
 and dangling symlink. Run the full unchanged format/lint/type/coverage/build gates,
 then install both release distributions and exercise the CLI examples and errors.
+
+Installed wheels include the four authority documents and the synthetic sample at
+`share/doc/multi-person-availability-merger` under Python's data prefix. Locate it
+with `python -c "import sysconfig; print(sysconfig.get_path('data'))"`, then run
+`availability-merge <prefix>/share/doc/multi-person-availability-merger/examples/sample.json`.
+Release acceptance installs both the exact tag wheel and sdist into fresh environments,
+checks those files and runs the CLI examples outside the source checkout.

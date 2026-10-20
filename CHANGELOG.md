@@ -2,6 +2,8 @@
 
 ## 1.2.1 - 2026-10-20
 
+- Ship all four authority documents and the synthetic example in installed wheels.
+
 - Validate participant names and explicit ISO datetime forms, reject invalid offset minutes, and report UTC boundary errors cleanly.
 - Treat arbitrarily large buffers as removing short windows without overflow.
 - Create reports exclusively to preserve existing destinations and symlink targets; render participant IDs literally in Markdown.
