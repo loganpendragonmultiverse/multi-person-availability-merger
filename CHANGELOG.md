@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 - 2026-10-20
+
+- Validate participant names and explicit ISO datetime forms, reject invalid offset minutes, and report UTC boundary errors cleanly.
+- Treat arbitrarily large buffers as removing short windows without overflow.
+- Create reports exclusively to preserve existing destinations and symlink targets; render participant IDs literally in Markdown.
+- Add malformed-input, date-boundary, race and report-safety regressions.
+
 ## 1.2.0 - 2026-10-16
 
 Optional `required_participant_ids` restricts results to windows containing every listed ID as

@@ -59,3 +59,18 @@ organizer plus at least one other participant. Buffers still trim each person's 
 and the duration filter applies to each continuous window with the same participant set.
 Explicit offsets retain UTC arithmetic across transitions. No calendar access, invitations,
 time-zone guessing, or inferred availability is added.
+
+## 1.2.1 completion pass
+
+Participant names must be nonempty strings. Interval endpoints require an ISO date
+and explicit hour/minute clock separated by `T` or a space, with optional seconds
+(up to six fractional digits) and optional `Z` or `±HH:MM` offset. Date-only and
+compact/ambiguous forms are rejected. Offset minutes must be 00–59; UTC conversion
+must stay within years 1–9999. A buffer longer than a participant's window simply
+removes that window, including very large buffer values.
+
+Reports are created exclusively, so an existing destination or symlink cannot be
+overwritten even if it appears between validation and writing. Markdown participant
+IDs are rendered as literal text; JSON preserves supplied IDs. The intended scope
+is complete: explicit intervals, unions, buffers, quorum and required participants,
+UTC arithmetic and read-only-source report export. No calendar service is contacted.
