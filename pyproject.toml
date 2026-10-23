@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi-person-availability-merger"
-version = "1.2.1"
+version = "1.3.0"
 description = "Merge pasted availability lists and return overlapping windows without calendar access."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ authors = [{ name = "Logan Pendragon Multiverse" }]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["build>=1.3,<2", "mypy>=1.15,<3", "pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1"]
+dev = ["icalendar>=6,<8", "build>=1.3,<2", "mypy>=1.15,<3", "pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1"]
 
 [project.scripts]
 availability-merge = "availability_merger.cli:main"
