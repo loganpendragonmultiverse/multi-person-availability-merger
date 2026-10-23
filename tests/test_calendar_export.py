@@ -142,7 +142,7 @@ def test_invalid_privacy_report_precision_and_control_characters():
         render_ics(report, [1], timezone_choice="UTC", privacy="all")
     with pytest.raises(TypeError, match="analyzed"):
         render_ics({}, [1], timezone_choice="UTC", privacy="busy-only")
-    report["overlaps"][0]["start"] = "2026-10-25T01:00:00.5"
+    report["overlaps"][0]["start"] = "2026-10-25T01:00:00.500000"
     with pytest.raises(ValueError, match="whole-second"):
         render_ics(report, [1], timezone_choice="UTC", privacy="busy-only")
     report["overlaps"][0]["start"] = None
