@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 - 2026-10-23
+
+- Export explicitly selected overlap windows as local iCalendar files with required timezone and privacy choices.
+- Preserve existing reports and overlap calculation; add UTC timestamp, text escaping, line folding, parser and output-protection acceptance.
+
 ## 1.2.1 - 2026-10-20
 
 - Ship all four authority documents and the synthetic example in installed wheels.

@@ -8,7 +8,7 @@ Preserve deterministic, source-safe behavior and the interpretation boundary doc
 
 Union participant intervals, validate identities and datetime forms, and add meeting-length filters, buffers and a UTC-aware timeline.
 
-Each person may provide a unique string `id`; otherwise their unique name is the ID. Use `minimum_minutes` and `buffer_minutes` as nonnegative integers. Buffers trim each person's unioned availability before calculating overlaps; meeting length applies to each continuous slot with the same participant set. `timezone_mode` is `auto`, `utc` (explicit offsets required), or `naive` (wall times only). Offset-aware inputs are converted to UTC before duration arithmetic. Mixed aware/naive times and duplicate IDs are rejected. Named-zone guessing and calendar writes are not performed. Markdown includes a start/end/minutes/participants timeline.
+Each person may provide a unique string `id`; otherwise their unique name is the ID. Use `minimum_minutes` and `buffer_minutes` as nonnegative integers. Buffers trim each person's unioned availability before calculating overlaps; meeting length applies to each continuous slot with the same participant set. `timezone_mode` is `auto`, `utc` (explicit offsets required), or `naive` (wall times only). Offset-aware inputs are converted to UTC before duration arithmetic. Mixed aware/naive times and duplicate IDs are rejected. Named-zone guessing and writes to calendar accounts are not performed. Markdown includes a start/end/minutes/participants timeline.
 
 Local formatting, lint, strict types and regression tests pass. Public release completion requires the protected CI/CodeQL matrix, tagged artifacts and matching Forge catalog/detail deployment.
 
@@ -40,3 +40,23 @@ with `python -c "import sysconfig; print(sysconfig.get_path('data'))"`, then run
 `availability-merge <prefix>/share/doc/multi-person-availability-merger/examples/sample.json`.
 Release acceptance installs both the exact tag wheel and sdist into fresh environments,
 checks those files and runs the CLI examples outside the source checkout.
+
+## Selected-overlap calendar export (1.3.0)
+
+First inspect a JSON or Markdown report, then explicitly choose one-based entries from its `overlaps` list. Export only the selected windows:
+
+```bash
+availability-merge input.json --format json
+availability-merge input.json --format ics --slot 1 --slot 3 --calendar-timezone UTC --calendar-privacy busy-only --output selected.ics
+availability-merge input.json --format ics --slot 1 --calendar-timezone=-05:00 --calendar-privacy participants --output selected-with-names.ics
+```
+
+ICS export requires at least one unique `--slot`, an explicit `--calendar-timezone` and an explicit `--calendar-privacy`. Slot numbers refer to this report's ordered overlap entries; changing inputs, filters, buffers or quorum can change the numbering. Each event uses the complete selected window, not an inferred meeting length.
+
+For offset-aware inputs choose `UTC`: their existing instants are preserved. For naive wall times explicitly choose `UTC` or a known fixed `+/-HH:MM` offset within -14:00 through +14:00. Use the equals form for a negative offset as shown above. Named zones, daylight-saving inference and unknown `-00:00` offsets are not supported; supply explicit-offset source intervals for DST-sensitive dates. All exported event endpoints use UTC. Fractional seconds are rejected rather than rounded.
+
+`busy-only` uses a generic title and omits participant names and IDs. `participants` includes the selected window's names and distinct IDs in its description. Both disclose the selected times. CLASS:PRIVATE is a calendar hint, not encryption or access control; review the file and your calendar's sharing settings before importing or sharing it.
+
+Events are tentative opaque time blocks. The file sends no invitations, includes no attendee/organizer/alarm fields and accesses no calendar accounts. Each export creates fresh event IDs; importing the same windows repeatedly can create duplicates. The UTF-8 iCalendar file uses CRLF and folded content lines following [RFC 5545](https://www.rfc-editor.org/rfc/rfc5545.html).
+
+JSON/Markdown defaults, overlap calculation, filters, source-read-only behavior and exclusive output creation remain unchanged. Calendar-only options with a non-ICS format are rejected. Installed-file and stdout checks cover line endings on the native platform matrix; parser acceptance does not claim testing in every calendar application. The independent `icalendar` parser is a development/test dependency only; runtime dependencies remain empty.
